@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PublicationStatus {
+  ONGOING
+  COMPLETED
+  HIATUS
+}
+
+enum ReadingStatus {
+  READING
+  UP_TO_DATE
+  PAUSED
+  COMPLETED
+  DROPPED
+}
+
+enum NotificationType {
+  NEW_CHAPTERS
+  SYSTEM
+}
+
+enum SyncStatus {
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  usernameKey   String?   @unique
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  library       LibraryEntry[]
+  notifications Notification[]
+  recentlyViewed RecentlyViewed[]
+
+  @@index([createdAt])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([email, expiresAt])
+}
+
+model Author {
+  id        String  @id @default(cuid())
+  name      String
+  slug      String  @unique
+  novels    Novel[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Genre {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  slug   String  @unique
+  novels Novel[]
+}
+
+model Novel {
+  id                String            @id @default(cuid())
+  title             String
+  slug              String            @unique
+  alternativeTitles String[]
+  coverUrl          String
+  synopsis          String
+  country           String
+  language          String
+  publicationStatus PublicationStatus @default(ONGOING)
+  chapterCount      Int               @default(0)
+  authorId          String
+  author            Author            @relation(fields: [authorId], references: [id])
+  genres            Genre[]
+  libraryEntries    LibraryEntry[]
+  notifications     Notification[]
+  recentlyViewed    RecentlyViewed[]
+  syncLogs          ChapterSyncLog[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([title])
+  @@index([country, publicationStatus])
+  @@index([chapterCount])
+}
+
+model LibraryEntry {
+  id              String        @id @default(cuid())
+  userId          String
+  novelId         String
+  readingStatus   ReadingStatus @default(READING)
+  currentChapter  Int           @default(0)
+  lastReadChapter Int           @default(0)
+  lastReadAt      DateTime?
+  rating          Int?
+  favorite        Boolean       @default(false)
+  unreadChapters  Int           @default(0)
+  addedAt         DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  novel           Novel         @relation(fields: [novelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, novelId])
+  @@index([userId, readingStatus])
+  @@index([userId, updatedAt])
+}
+
+model Notification {
+  id           String           @id @default(cuid())
+  userId       String
+  novelId      String?
+  type         NotificationType
+  title        String
+  message      String
+  chapterDelta Int?
+  readAt       DateTime?
+  createdAt    DateTime         @default(now())
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  novel        Novel?           @relation(fields: [novelId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model RecentlyViewed {
+  id       String   @id @default(cuid())
+  userId   String
+  novelId  String
+  viewedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  novel    Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, novelId])
+  @@index([userId, viewedAt])
+}
+
+model ChapterSyncLog {
+  id             String     @id @default(cuid())
+  novelId        String
+  source         String
+  previousCount  Int
+  detectedCount  Int
+  status         SyncStatus
+  error          String?
+  createdAt      DateTime   @default(now())
+  novel          Novel      @relation(fields: [novelId], references: [id], onDelete: Cascade)
+
+  @@index([novelId, createdAt])
+}

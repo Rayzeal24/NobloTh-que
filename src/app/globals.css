@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef0f6;
+  --foreground: #14151b;
+  --muted: #6b7080;
+  --border: #e0e3eb;
+  --primary: #7857f5;
+  --primary-soft: #eeeaff;
+  --success: #2ccf9c;
+  --warning: #ffb44d;
+}
+
+.dark {
+  --background: #0d0b17;
+  --surface: #161321;
+  --surface-2: #211b31;
+  --foreground: #f7f7fa;
+  --muted: #a19aae;
+  --border: #322a43;
+  --primary: #9b7cff;
+  --primary-soft: #2b214d;
+  --success: #3dd6a5;
+  --warning: #ffc266;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --font-sans: var(--font-geist-sans);
+}
+
+* { border-color: var(--border); }
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+html.dark { color-scheme: dark; }
+body {
+  background: var(--background);
+  background-image:
+    radial-gradient(circle at 12% -8%, rgba(122, 82, 255, .18), transparent 32rem),
+    radial-gradient(circle at 100% 24%, rgba(191, 71, 255, .08), transparent 34rem),
+    radial-gradient(circle at 45% 105%, rgba(55, 130, 255, .07), transparent 38rem);
+  background-attachment: fixed;
+  color: var(--foreground);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
+::selection { background: var(--primary); color: white; }
+
+.safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-9px) rotate(1deg); }
+}
+
+@keyframes landing-float-delayed {
+  0%, 100% { transform: translateY(0) rotate(1deg); }
+  50% { transform: translateY(8px) rotate(-1deg); }
+}
+
+.landing-float { animation: landing-float 5s ease-in-out infinite; }
+.landing-float-delayed { animation: landing-float-delayed 6s ease-in-out 1s infinite; }
+
+@keyframes firework-particle {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(0) scale(.3);
+  }
+  12% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateX(var(--distance)) scale(0);
+  }
+}
+
+@keyframes firework-message {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(.7) rotate(-3deg); }
+  12% { opacity: 1; transform: translate(-50%, 0) scale(1.08) rotate(1deg); }
+  20%, 78% { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(0); }
+  100% { opacity: 0; transform: translate(-50%, -16px) scale(.94); }
+}
+
+@keyframes celebration-confetti {
+  0% { opacity: 0; transform: translateY(-10vh) rotate(var(--confetti-rotation)); }
+  8% { opacity: 1; }
+  100% { opacity: 0; transform: translate(45px, 105vh) rotate(calc(var(--confetti-rotation) + 720deg)); }
+}
+
+@keyframes celebration-glow {
+  0%, 100% { opacity: 0; }
+  12%, 68% { opacity: 1; }
+}
+
+.firework-particle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--particle-color);
+  box-shadow: 0 0 18px 3px var(--particle-color);
+  animation: firework-particle 1100ms cubic-bezier(.18, .72, .2, 1) both;
+}
+
+.firework-message {
+  animation: firework-message 2800ms ease-out both;
+}
+
+.celebration-confetti {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--confetti-color);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--confetti-color), transparent 35%);
+  animation: celebration-confetti 2s ease-in both;
+}
+
+.celebration-glow {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(155, 124, 255, .18), transparent 35%),
+    radial-gradient(circle at 20% 35%, rgba(255, 85, 200, .13), transparent 24%),
+    radial-gradient(circle at 80% 30%, rgba(56, 242, 189, .12), transparent 25%);
+  animation: celebration-glow 2800ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
